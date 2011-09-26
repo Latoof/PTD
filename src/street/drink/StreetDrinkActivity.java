@@ -19,6 +19,7 @@ import android.util.Log;
 public class StreetDrinkActivity extends MapActivity {
 	
 	private DrinkItemizedOverlay m_itemizedoverlay;
+	private MapView m_mapView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -26,35 +27,32 @@ public class StreetDrinkActivity extends MapActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        MapView mapView = (MapView) findViewById(R.id.mapview);
-        mapView.setBuiltInZoomControls(true);
-        
-     
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        LocationListener locationListener = new UserLocationListener(this);
-               
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 5000, locationListener);
-        
+        m_mapView = (MapView) findViewById(R.id.mapview);
+        m_mapView.setBuiltInZoomControls(true);
 
-        //Location l = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-              
+        Log.e("MAP",m_mapView.getLatitudeSpan()+","+m_mapView.getLongitudeSpan());
         
-        /*
-        double x1 = l.getLatitude();
-        double y1 = l.getLongitude();
-        */
-        
-        
-        List<Overlay> mapOverlays = mapView.getOverlays();
+        List<Overlay> mapOverlays = m_mapView.getOverlays();
         Drawable drawable = this.getResources().getDrawable(R.drawable.icon);
-        m_itemizedoverlay = new DrinkItemizedOverlay(drawable);
+        m_itemizedoverlay = new DrinkItemizedOverlay(drawable, this);
          
         
         /* example */
 
 
+        drawPoint(0,0);
         mapOverlays.add(m_itemizedoverlay);
        
+        startLocationListener();
+
+    }
+    
+    protected void startLocationListener() {
+    	
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListener = new UserLocationListener(this);
+               
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 5000, locationListener);
         
     }
 
@@ -65,6 +63,12 @@ public class StreetDrinkActivity extends MapActivity {
 	
 	public void positionCallback(Location loc) {
 		this.addFlag(loc);
+		        
+        m_mapView.getController().setZoom(75);
+        m_mapView.getController().setCenter( new GeoPoint((int)(1000000*loc.getLatitude()), (int)(1000000*loc.getLongitude()) ) );
+
+        
+        Log.i("GPS","New position detected : "+(int)(1000000*loc.getLatitude())+","+(int)(1000000*loc.getLongitude()));
 	}
 	
 	public void drawPoint(int lat, int lon) {
@@ -86,7 +90,7 @@ public class StreetDrinkActivity extends MapActivity {
         
         m_itemizedoverlay.addOverlay(overlayitem);
         
-        
 	}
+	
 	
 }
